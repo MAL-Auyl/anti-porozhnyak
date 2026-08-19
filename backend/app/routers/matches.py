@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import text
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session as DBSession
 
 from app.database import get_db
@@ -85,19 +86,42 @@ def find_matches_for_vehicle(vehicle_id: str, db: DBSession = Depends(get_db)):
             .filter(Match.vehicle_id == vehicle_id, Match.load_id == load.id)
             .first()
         )
-        if existing is None:
-            existing = Match(vehicle_id=vehicle_id, load_id=load.id)
-            db.add(existing)
+        row_values = dict(
+            score=score,
+            detour_km=round(data["metrics"].detour_km, 1),
+            coverage_pct=round(data["metrics"].coverage_pct, 1),
+            empty_km_before=data["econ"].empty_km_before,
+            empty_km_after=data["econ"].empty_km_after,
+            empty_km_saved=data["econ"].empty_km_saved,
+            fuel_saved_l=data["econ"].fuel_saved_l,
+            fuel_saved_kzt=data["econ"].fuel_saved_kzt,
+        )
 
-        existing.score = score
-        existing.detour_km = round(data["metrics"].detour_km, 1)
-        existing.coverage_pct = round(data["metrics"].coverage_pct, 1)
-        existing.empty_km_before = data["econ"].empty_km_before
-        existing.empty_km_after = data["econ"].empty_km_after
-        existing.empty_km_saved = data["econ"].empty_km_saved
-        existing.fuel_saved_l = data["econ"].fuel_saved_l
-        existing.fuel_saved_kzt = data["econ"].fuel_saved_kzt
-        db.flush()
+        if existing is not None:
+            for k, v in row_values.items():
+                setattr(existing, k, v)
+            db.flush()
+            results.append(existing)
+            continue
+
+        # /review finding: two concurrent pollers (e.g. two open tabs) could
+        # both pass the "existing is None" check above before either commits.
+        # A SAVEPOINT here means only the losing insert's conflict rolls
+        # back — the outer loop and any already-flushed rows are unaffected.
+        try:
+            with db.begin_nested():
+                existing = Match(vehicle_id=vehicle_id, load_id=load.id, **row_values)
+                db.add(existing)
+                db.flush()
+        except IntegrityError:
+            existing = (
+                db.query(Match)
+                .filter(Match.vehicle_id == vehicle_id, Match.load_id == load.id)
+                .one()
+            )
+            for k, v in row_values.items():
+                setattr(existing, k, v)
+            db.flush()
         results.append(existing)
 
     db.commit()

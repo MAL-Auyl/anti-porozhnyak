@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Integer,
     String,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -97,6 +98,14 @@ class Match(Base):
     fuel_saved_kzt = Column(Float, nullable=False)
     status = Column(String, nullable=False, default="PROPOSED")  # PROPOSED | ACCEPTED | REJECTED
     created_at = Column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (
+        # /review finding: find_matches_for_vehicle did check-then-insert on
+        # (vehicle_id, load_id) with no DB-level guard — concurrent polling
+        # requests (e.g. two open tabs) could each pass the "does it exist?"
+        # check before either commits, producing duplicate Match rows.
+        UniqueConstraint("vehicle_id", "load_id", name="uq_match_vehicle_load"),
+    )
 
     vehicle = relationship("Vehicle")
     load = relationship("Load")

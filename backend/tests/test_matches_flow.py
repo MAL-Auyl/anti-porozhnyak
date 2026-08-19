@@ -31,6 +31,57 @@ def test_empty_matching_result_returns_explicit_reason(client):
     assert "trips_in_database" in body["empty_state"]
 
 
+def test_duplicate_match_rows_rejected_at_db_level(client):
+    """Regression for a /review finding: find_matches_for_vehicle did
+    check-then-insert on (vehicle_id, load_id) with no DB constraint —
+    concurrent pollers (two open tabs) could both pass the existence check
+    before either committed, producing duplicate Match rows. This pins the
+    UniqueConstraint that closes the gap."""
+    from sqlalchemy.exc import IntegrityError
+
+    from app.models.models import Match
+
+    sender = _login(client, "Стройбаза", "sender")
+    load = client.post(
+        "/loads",
+        json={
+            "origin": "aktau",
+            "destination": "shetpe",
+            "cargo_type": "кирпич",
+            "cargo_category": "стройматериалы",
+            "weight_tons": 5,
+            "required_vehicle": "тент",
+            "pickup_time": "2026-08-19T08:00:00Z",
+            "price_kzt": 45000,
+        },
+    ).json()
+    carrier = _login(client, "Ерлан", "carrier")
+    vehicle = client.post(
+        "/vehicles",
+        json={
+            "vehicle_type": "тент",
+            "capacity_tons": 8,
+            "origin": "aktau",
+            "destination": "shetpe",
+            "departure_time": "2026-08-19T08:30:00Z",
+        },
+    ).json()
+
+    db = client.db_session_factory()
+    try:
+        db.add(Match(vehicle_id=vehicle["id"], load_id=load["id"], score=50, detour_km=0, coverage_pct=0, empty_km_saved=0, fuel_saved_l=0, fuel_saved_kzt=0))
+        db.commit()
+
+        db.add(Match(vehicle_id=vehicle["id"], load_id=load["id"], score=60, detour_km=0, coverage_pct=0, empty_km_saved=0, fuel_saved_l=0, fuel_saved_kzt=0))
+        try:
+            db.commit()
+            assert False, "expected IntegrityError — unique constraint should reject the duplicate"
+        except IntegrityError:
+            db.rollback()
+    finally:
+        db.close()
+
+
 def test_load_created_from_llm_parse_draft_actually_matches(client):
     """End-to-end regression for the /qa-found bug: a load created from the
     LLM parser's draft (origin/destination as location names from the

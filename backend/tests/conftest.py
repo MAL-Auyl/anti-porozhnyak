@@ -27,5 +27,6 @@ def client():
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as c:
+        c.db_session_factory = TestingSessionLocal  # for tests needing a raw session
         yield c
     app.dependency_overrides.clear()
