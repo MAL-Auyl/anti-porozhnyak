@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "../api/client";
 import { usePolling } from "../hooks/usePolling";
-import { locationName } from "../data/locationNames";
+import { locations, locationName } from "../data/locationNames";
 import Spinner from "../components/Spinner";
 
 const STATUS_LABELS = {
@@ -93,11 +93,29 @@ export default function SenderScreen({ user }) {
           <h3>Проверьте заявку</h3>
           <label>
             Откуда
-            <input value={draft.origin || ""} onChange={(e) => setDraft({ ...draft, origin: e.target.value })} />
+            <select value={draft.origin || ""} onChange={(e) => setDraft({ ...draft, origin: e.target.value })}>
+              <option value="" disabled>
+                выберите...
+              </option>
+              {locations.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Куда
-            <input value={draft.destination || ""} onChange={(e) => setDraft({ ...draft, destination: e.target.value })} />
+            <select value={draft.destination || ""} onChange={(e) => setDraft({ ...draft, destination: e.target.value })}>
+              <option value="" disabled>
+                выберите...
+              </option>
+              {locations.map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.name}
+                </option>
+              ))}
+            </select>
           </label>
           <label>
             Груз

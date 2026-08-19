@@ -16,7 +16,7 @@ from typing import Optional
 from anthropic import Anthropic
 from pydantic import BaseModel, Field, ValidationError
 
-from app.services.geo import load_locations
+from app.services.geo import load_locations, location_id_by_name
 
 CARGO_CATEGORIES = {
     "стройматериалы",
@@ -56,11 +56,22 @@ class ParseResult(BaseModel):
 
 
 def _validate_locations(fields: dict, errors: list[str]) -> None:
-    known = {loc["name"] for loc in load_locations().values()}
+    """Validates origin/destination are known location names, THEN
+    normalizes them to location ids in-place.
+
+    The LLM is prompted to return human names ("Актау") since that's what
+    it can reliably produce, but vehicles/routes/the distance matrix all
+    key on slug ids ("aktau") — a load left with a name instead of an id
+    breaks every downstream distance_km() lookup (found via /qa: crashed
+    the matching endpoint with 'No route data between aktau and Актау').
+    """
     for key in ("origin", "destination"):
         val = fields.get(key)
-        if val not in known:
+        loc_id = location_id_by_name(val) if isinstance(val, str) else None
+        if loc_id is None:
             errors.append(f"'{key}' = {val!r} не входит в известные населённые пункты региона")
+        else:
+            fields[key] = loc_id
 
 
 def _validate_category(fields: dict, errors: list[str]) -> None:
@@ -127,8 +138,13 @@ DEMO_PHRASE = "нужно завтра из Актау в Шетпе отвез�
 DEMO_CACHED_RESULT = ParseResult(
     ok=True,
     draft=ParsedLoadDraft(
-        origin="Актау",
-        destination="Шетпе",
+        # ids, not display names — this constant bypasses _validate_locations'
+        # name->id normalization, and originally still held raw names after
+        # that fix landed. Found via /qa: destination select silently fell
+        # back to the first option (Актау) because "Шетпе" matched no
+        # option value, so the demo's own route showed Aktau -> Aktau.
+        origin="aktau",
+        destination="shetpe",
         cargo="кирпич",
         cargo_category="стройматериалы",
         weight_tons=5,

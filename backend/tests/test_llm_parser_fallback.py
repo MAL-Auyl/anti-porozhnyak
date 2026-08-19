@@ -5,7 +5,13 @@ hand-crafted "LLM output" dicts, since the failure mode under test is
 validation-after-the-call, not the call itself.
 """
 
-from app.services.llm_parser import CARGO_CATEGORIES, DEMO_PHRASE, ParsedLoadDraft, parse_load_request_cached
+from app.services.llm_parser import (
+    CARGO_CATEGORIES,
+    DEMO_PHRASE,
+    ParsedLoadDraft,
+    _validate_locations,
+    parse_load_request_cached,
+)
 from pydantic import ValidationError
 
 
@@ -75,6 +81,27 @@ def test_negative_weight_rejected():
         pass
 
 
+def test_validate_locations_normalizes_names_to_ids():
+    """The LLM is prompted to return human names ('Актау'); this must
+    convert them to slug ids ('aktau') in-place so vehicles/loads/the
+    distance matrix agree on identity. Root cause of the /qa crash:
+    'No route data between aktau and Актау'."""
+    fields = {"origin": "Актау", "destination": "Шетпе"}
+    errors = []
+    _validate_locations(fields, errors)
+    assert errors == []
+    assert fields["origin"] == "aktau"
+    assert fields["destination"] == "shetpe"
+
+
+def test_validate_locations_rejects_unknown_name():
+    fields = {"origin": "Нью-Йорк", "destination": "Шетпе"}
+    errors = []
+    _validate_locations(fields, errors)
+    assert len(errors) == 1
+    assert "origin" in errors[0]
+
+
 def test_known_cargo_categories_cover_return_flow_use_case():
     for expected in ("возвратная тара", "оборудование", "вторсырьё", "лом"):
         assert expected in CARGO_CATEGORIES
@@ -93,7 +120,19 @@ def test_demo_phrase_hits_cache_without_calling_llm(monkeypatch):
 
     result = parse_load_request_cached(DEMO_PHRASE)
     assert result.ok is True
-    assert result.draft.origin == "Актау"
+    # Regression: DEMO_CACHED_RESULT originally hardcoded display names
+    # ("Актау"/"Шетпе") instead of location ids ("aktau"/"shetpe"). The
+    # frontend's <select> matches by id, so a name silently fell back to
+    # the first option — found via /qa: both "Откуда" and "Куда" showed
+    # "Актау" selected because "Шетпе" matched no option value.
+    from app.services.geo import load_locations
+
+    known_ids = set(load_locations().keys())
+    assert result.draft.origin in known_ids, f"{result.draft.origin!r} is not a location id"
+    assert result.draft.destination in known_ids, f"{result.draft.destination!r} is not a location id"
+    assert result.draft.origin != result.draft.destination
+    assert result.draft.origin == "aktau"
+    assert result.draft.destination == "shetpe"
 
     # Case-insensitivity: judges/team may retype with different casing.
     result_upper = parse_load_request_cached(DEMO_PHRASE.upper())

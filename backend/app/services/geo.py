@@ -43,3 +43,19 @@ def distance_km(a: str, b: str) -> float:
 def location_name(loc_id: str) -> str:
     loc = load_locations().get(loc_id)
     return loc["name"] if loc else loc_id
+
+
+@lru_cache(maxsize=1)
+def _name_to_id() -> dict[str, str]:
+    return {loc["name"]: loc_id for loc_id, loc in load_locations().items()}
+
+
+def location_id_by_name(name: str) -> str | None:
+    """Reverse lookup: Cyrillic display name -> location id.
+
+    Needed because the LLM parser outputs human-readable names ("Актау")
+    while vehicles/routes/the distance matrix use slug ids ("aktau") — a
+    load created from parser output must be normalized to an id or every
+    downstream distance_km() lookup raises (found via /qa: 'No route data
+    between aktau and Актау' crashed the entire matching endpoint)."""
+    return _name_to_id().get(name)

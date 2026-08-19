@@ -31,6 +31,49 @@ def test_empty_matching_result_returns_explicit_reason(client):
     assert "trips_in_database" in body["empty_state"]
 
 
+def test_load_created_from_llm_parse_draft_actually_matches(client):
+    """End-to-end regression for the /qa-found bug: a load created from the
+    LLM parser's draft (origin/destination as location names from the
+    LLM's perspective) must produce ids that the matching engine can use —
+    previously this crashed distance_km() with 'No route data between
+    aktau and Актау' the moment a carrier searched for matches."""
+    sender = _login(client, "Стройбаза", "sender")
+    parsed = client.post("/loads/parse", json={"text": "нужно завтра из Актау в Шетпе отвезти 5 тонн кирпича, машина с тентом"}).json()
+    assert parsed["ok"] is True
+    draft = parsed["draft"]
+
+    load = client.post(
+        "/loads",
+        json={
+            "origin": draft["origin"],
+            "destination": draft["destination"],
+            "cargo_type": draft["cargo"],
+            "cargo_category": draft["cargo_category"],
+            "weight_tons": draft["weight_tons"],
+            "required_vehicle": draft["vehicle_type"],
+            "pickup_time": "2026-08-19T08:00:00Z",
+            "price_kzt": 45000,
+        },
+    )
+    assert load.status_code == 200
+
+    carrier = _login(client, "Ерлан", "carrier")
+    vehicle = client.post(
+        "/vehicles",
+        json={
+            "vehicle_type": draft["vehicle_type"],
+            "capacity_tons": 8,
+            "origin": draft["origin"],
+            "destination": draft["destination"],
+            "departure_time": "2026-08-19T08:30:00Z",
+        },
+    ).json()
+
+    matches = client.get(f"/vehicles/{vehicle['id']}/matches")
+    assert matches.status_code == 200  # previously 500 — matching crashed on unresolved location names
+    assert matches.json()["matches"], "expected a match for a direct-route load created via the parser"
+
+
 def test_second_carrier_gets_409_on_already_accepted_load(client):
     sender = _login(client, "Стройбаза", "sender")
     load = client.post(
