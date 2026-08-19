@@ -83,7 +83,7 @@ def _call_gemini(text: str, system: str) -> str:
 
     genai.configure(api_key=os.environ["GEMINI_API_KEY"])
     model = genai.GenerativeModel(
-        os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+        os.getenv("GEMINI_MODEL", "gemini-3.6-flash"),
         system_instruction=system,
     )
     resp = model.generate_content(text)
