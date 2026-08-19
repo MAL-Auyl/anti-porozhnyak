@@ -141,6 +141,8 @@ DEMO_CACHED_RESULT = ParseResult(
 
 
 def parse_load_request_cached(text: str) -> ParseResult:
-    if text.strip().lower() == DEMO_PHRASE:
+    # Bug found on review: comparing a lowered input against a mixed-case
+    # DEMO_PHRASE ("Актау", "Шетпе") never matched. Lower both sides.
+    if text.strip().lower() == DEMO_PHRASE.lower():
         return DEMO_CACHED_RESULT
     return parse_load_request(text)
