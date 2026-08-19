@@ -1,0 +1,12 @@
+[
+  { "id": "aktau", "name": "Актау", "lat": 43.6481, "lon": 51.1801, "is_hub": true },
+  { "id": "zhanaozen", "name": "Жанаозен", "lat": 43.3419, "lon": 52.8592, "is_hub": false },
+  { "id": "fort-shevchenko", "name": "Форт-Шевченко", "lat": 44.5083, "lon": 50.2650, "is_hub": false },
+  { "id": "kuryk", "name": "Курык", "lat": 43.1975, "lon": 51.6425, "is_hub": false },
+  { "id": "beyneu", "name": "Бейнеу", "lat": 45.3167, "lon": 55.2000, "is_hub": false },
+  { "id": "shetpe", "name": "Шетпе", "lat": 44.1667, "lon": 52.1167, "is_hub": false },
+  { "id": "munayly", "name": "Мунайлы", "lat": 43.7333, "lon": 51.5333, "is_hub": false },
+  { "id": "tauchik", "name": "Таучик", "lat": 43.5900, "lon": 51.4800, "is_hub": false },
+  { "id": "sayotes", "name": "Сайотес", "lat": 43.9500, "lon": 51.9000, "is_hub": false },
+  { "id": "akshukur", "name": "Акшукур", "lat": 43.5300, "lon": 51.1600, "is_hub": false }
+]

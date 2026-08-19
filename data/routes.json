@@ -1,0 +1,317 @@
+[
+  {
+    "from": "aktau",
+    "to": "zhanaozen",
+    "distance_km": 188.5,
+    "estimated_time_min": 162,
+    "road_type": "paved"
+  },
+  {
+    "from": "aktau",
+    "to": "fort-shevchenko",
+    "distance_km": 162.5,
+    "estimated_time_min": 195,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "aktau",
+    "to": "kuryk",
+    "distance_km": 84.4,
+    "estimated_time_min": 72,
+    "road_type": "paved"
+  },
+  {
+    "from": "aktau",
+    "to": "beyneu",
+    "distance_km": 498.0,
+    "estimated_time_min": 427,
+    "road_type": "paved"
+  },
+  {
+    "from": "aktau",
+    "to": "shetpe",
+    "distance_km": 127.8,
+    "estimated_time_min": 110,
+    "road_type": "paved"
+  },
+  {
+    "from": "aktau",
+    "to": "munayly",
+    "distance_km": 40.4,
+    "estimated_time_min": 35,
+    "road_type": "paved"
+  },
+  {
+    "from": "aktau",
+    "to": "tauchik",
+    "distance_km": 33.7,
+    "estimated_time_min": 29,
+    "road_type": "paved"
+  },
+  {
+    "from": "aktau",
+    "to": "sayotes",
+    "distance_km": 90.2,
+    "estimated_time_min": 108,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "fort-shevchenko",
+    "to": "zhanaozen",
+    "distance_km": 330.6,
+    "estimated_time_min": 397,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "fort-shevchenko",
+    "to": "kuryk",
+    "distance_km": 246.9,
+    "estimated_time_min": 296,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "fort-shevchenko",
+    "to": "shetpe",
+    "distance_km": 205.3,
+    "estimated_time_min": 246,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "fort-shevchenko",
+    "to": "munayly",
+    "distance_km": 179.5,
+    "estimated_time_min": 215,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "fort-shevchenko",
+    "to": "tauchik",
+    "distance_km": 190.2,
+    "estimated_time_min": 228,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "fort-shevchenko",
+    "to": "sayotes",
+    "distance_km": 194.8,
+    "estimated_time_min": 234,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "kuryk",
+    "to": "zhanaozen",
+    "distance_km": 134.7,
+    "estimated_time_min": 115,
+    "road_type": "paved"
+  },
+  {
+    "from": "kuryk",
+    "to": "shetpe",
+    "distance_km": 154.3,
+    "estimated_time_min": 132,
+    "road_type": "paved"
+  },
+  {
+    "from": "kuryk",
+    "to": "munayly",
+    "distance_km": 81.3,
+    "estimated_time_min": 70,
+    "road_type": "paved"
+  },
+  {
+    "from": "kuryk",
+    "to": "tauchik",
+    "distance_km": 61.5,
+    "estimated_time_min": 53,
+    "road_type": "paved"
+  },
+  {
+    "from": "kuryk",
+    "to": "sayotes",
+    "distance_km": 116.4,
+    "estimated_time_min": 140,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "beyneu",
+    "to": "zhanaozen",
+    "distance_km": 388.6,
+    "estimated_time_min": 333,
+    "road_type": "paved"
+  },
+  {
+    "from": "beyneu",
+    "to": "fort-shevchenko",
+    "distance_km": 538.4,
+    "estimated_time_min": 646,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "beyneu",
+    "to": "kuryk",
+    "distance_km": 497.4,
+    "estimated_time_min": 426,
+    "road_type": "paved"
+  },
+  {
+    "from": "beyneu",
+    "to": "shetpe",
+    "distance_km": 371.3,
+    "estimated_time_min": 318,
+    "road_type": "paved"
+  },
+  {
+    "from": "beyneu",
+    "to": "munayly",
+    "distance_km": 458.7,
+    "estimated_time_min": 393,
+    "road_type": "paved"
+  },
+  {
+    "from": "beyneu",
+    "to": "tauchik",
+    "distance_km": 475.4,
+    "estimated_time_min": 407,
+    "road_type": "paved"
+  },
+  {
+    "from": "beyneu",
+    "to": "sayotes",
+    "distance_km": 407.8,
+    "estimated_time_min": 489,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "shetpe",
+    "to": "zhanaozen",
+    "distance_km": 147.7,
+    "estimated_time_min": 127,
+    "road_type": "paved"
+  },
+  {
+    "from": "shetpe",
+    "to": "tauchik",
+    "distance_km": 110.6,
+    "estimated_time_min": 95,
+    "road_type": "paved"
+  },
+  {
+    "from": "munayly",
+    "to": "zhanaozen",
+    "distance_km": 155.8,
+    "estimated_time_min": 134,
+    "road_type": "paved"
+  },
+  {
+    "from": "munayly",
+    "to": "shetpe",
+    "distance_km": 90.6,
+    "estimated_time_min": 78,
+    "road_type": "paved"
+  },
+  {
+    "from": "munayly",
+    "to": "tauchik",
+    "distance_km": 22.3,
+    "estimated_time_min": 19,
+    "road_type": "paved"
+  },
+  {
+    "from": "munayly",
+    "to": "sayotes",
+    "distance_km": 51.3,
+    "estimated_time_min": 62,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "tauchik",
+    "to": "zhanaozen",
+    "distance_km": 154.8,
+    "estimated_time_min": 133,
+    "road_type": "paved"
+  },
+  {
+    "from": "sayotes",
+    "to": "zhanaozen",
+    "distance_km": 138.5,
+    "estimated_time_min": 166,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "sayotes",
+    "to": "shetpe",
+    "distance_km": 40.1,
+    "estimated_time_min": 48,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "sayotes",
+    "to": "tauchik",
+    "distance_km": 70.7,
+    "estimated_time_min": 85,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "aktau",
+    "distance_km": 17.9,
+    "estimated_time_min": 21,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "zhanaozen",
+    "distance_km": 187.4,
+    "estimated_time_min": 225,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "fort-shevchenko",
+    "distance_km": 175.8,
+    "estimated_time_min": 211,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "kuryk",
+    "distance_km": 72.6,
+    "estimated_time_min": 87,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "beyneu",
+    "distance_km": 509.3,
+    "estimated_time_min": 611,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "shetpe",
+    "distance_km": 140.9,
+    "estimated_time_min": 169,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "munayly",
+    "distance_km": 50.8,
+    "estimated_time_min": 61,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "tauchik",
+    "distance_km": 36.0,
+    "estimated_time_min": 43,
+    "road_type": "unpaved"
+  },
+  {
+    "from": "akshukur",
+    "to": "sayotes",
+    "distance_km": 102.1,
+    "estimated_time_min": 123,
+    "road_type": "unpaved"
+  }
+]
