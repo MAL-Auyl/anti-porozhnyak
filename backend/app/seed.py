@@ -156,11 +156,15 @@ def run():
 
         for i in range(14):
             village = random.choice(VILLAGES)
+            # Found via /qa: random destination could equal origin, producing
+            # a nonsensical "Акшукур -> Акшукур" 0km load surfaced in the
+            # carrier's match list. Exclude the origin from the candidates.
+            destination = random.choice([v for v in VILLAGES + [HUB] if v != village])
             db.add(
                 Load(
                     sender_id=random.choice(other_senders).id,
                     origin=village,
-                    destination=random.choice(VILLAGES + [HUB]),
+                    destination=destination,
                     cargo_type=random.choice(["тара", "поддоны", "металлолом", "б/у оборудование"]),
                     cargo_category=random.choice(RETURN_CATEGORIES),
                     weight_tons=round(random.uniform(0.5, 4), 1),
