@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session as DBSession
 
 from app.database import get_db
 from app.models.models import Load, Match, Vehicle
-from app.schemas.schemas import EmptyStateReason, MatchExplanation, MatchOut
+from app.schemas.schemas import EmptyStateReason, MatchExplanation, MatchOut, MatchWithLoad
 from app.services.economics import compute_economics
 from app.services.matching import MAX_ACCEPTABLE_DETOUR_KM, compute_route_metrics, score_match
 
@@ -92,6 +92,8 @@ def find_matches_for_vehicle(vehicle_id: str, db: DBSession = Depends(get_db)):
         existing.score = score
         existing.detour_km = round(data["metrics"].detour_km, 1)
         existing.coverage_pct = round(data["metrics"].coverage_pct, 1)
+        existing.empty_km_before = data["econ"].empty_km_before
+        existing.empty_km_after = data["econ"].empty_km_after
         existing.empty_km_saved = data["econ"].empty_km_saved
         existing.fuel_saved_l = data["econ"].fuel_saved_l
         existing.fuel_saved_kzt = data["econ"].fuel_saved_kzt
@@ -102,7 +104,11 @@ def find_matches_for_vehicle(vehicle_id: str, db: DBSession = Depends(get_db)):
     for r in results:
         db.refresh(r)
 
-    return {"matches": [MatchOut.model_validate(r) for r in results], "empty_state": None}
+    # Match.load relationship (models.py) supplies the nested load details
+    # directly — no extra query needed.
+    enriched = [MatchWithLoad.model_validate(r) for r in results]
+
+    return {"matches": enriched, "empty_state": None}
 
 
 @router.get("/matches/{match_id}/explain", response_model=MatchExplanation)

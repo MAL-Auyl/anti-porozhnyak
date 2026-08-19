@@ -70,10 +70,19 @@ class MatchOut(BaseModel):
     score: float
     detour_km: float
     coverage_pct: float
+    empty_km_before: float
+    empty_km_after: float
     empty_km_saved: float
     fuel_saved_l: float
     fuel_saved_kzt: float
     status: str
+
+
+class MatchWithLoad(MatchOut):
+    """Matches list embeds load details so the frontend doesn't need an N+1
+    fetch per card (origin/destination/cargo_type etc. aren't on Match)."""
+
+    load: LoadOut
 
 
 class MatchExplanation(BaseModel):

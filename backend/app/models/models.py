@@ -90,6 +90,8 @@ class Match(Base):
     score = Column(Float, nullable=False)
     detour_km = Column(Float, nullable=False)
     coverage_pct = Column(Float, nullable=False)
+    empty_km_before = Column(Float, nullable=False, default=0.0)
+    empty_km_after = Column(Float, nullable=False, default=0.0)
     empty_km_saved = Column(Float, nullable=False)
     fuel_saved_l = Column(Float, nullable=False)
     fuel_saved_kzt = Column(Float, nullable=False)
