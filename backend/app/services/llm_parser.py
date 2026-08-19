@@ -13,7 +13,6 @@ import os
 from datetime import date, datetime
 from typing import Optional
 
-from anthropic import Anthropic
 from pydantic import BaseModel, Field, ValidationError
 
 from app.services.geo import load_locations, location_id_by_name
@@ -79,15 +78,47 @@ def _validate_category(fields: dict, errors: list[str]) -> None:
         errors.append(f"'cargo_category' = {fields.get('cargo_category')!r} не входит в известные категории")
 
 
+def _call_gemini(text: str, system: str) -> str:
+    import google.generativeai as genai
+
+    genai.configure(api_key=os.environ["GEMINI_API_KEY"])
+    model = genai.GenerativeModel(
+        os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
+        system_instruction=system,
+    )
+    resp = model.generate_content(text)
+    return resp.text.strip()
+
+
+def _call_anthropic(text: str, system: str) -> str:
+    from anthropic import Anthropic
+
+    client = Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+    resp = client.messages.create(
+        model="claude-sonnet-4-5",
+        max_tokens=300,
+        system=system,
+        messages=[{"role": "user", "content": text}],
+    )
+    return resp.content[0].text.strip()
+
+
 def parse_load_request(text: str) -> ParseResult:
     """Calls the LLM, then validates independently of what it returned.
 
     Never raises on malformed LLM output — always returns a ParseResult,
     ok=False with errors populated when validation fails.
+
+    Provider is picked by whichever key is set: GEMINI_API_KEY first
+    (generous free tier — safer for a live hackathon demo than a paid,
+    possibly-unfunded Anthropic key), falling back to ANTHROPIC_API_KEY.
     """
-    api_key = os.getenv("ANTHROPIC_API_KEY")
-    if not api_key:
-        return ParseResult(ok=False, errors=["ANTHROPIC_API_KEY не задан — парсер недоступен"])
+    if os.getenv("GEMINI_API_KEY"):
+        call = _call_gemini
+    elif os.getenv("ANTHROPIC_API_KEY"):
+        call = _call_anthropic
+    else:
+        return ParseResult(ok=False, errors=["GEMINI_API_KEY / ANTHROPIC_API_KEY не заданы — парсер недоступен"])
 
     locations = ", ".join(sorted(loc["name"] for loc in load_locations().values()))
     system = SYSTEM_PROMPT.format(
@@ -96,17 +127,14 @@ def parse_load_request(text: str) -> ParseResult:
         default_date=datetime.now().date().isoformat(),
     )
 
-    client = Anthropic(api_key=api_key)
     try:
-        resp = client.messages.create(
-            model="claude-sonnet-4-5",
-            max_tokens=300,
-            system=system,
-            messages=[{"role": "user", "content": text}],
-        )
-        raw_text = resp.content[0].text.strip()
+        raw_text = call(text, system)
     except Exception as e:  # network/API failure — never crash the request
         return ParseResult(ok=False, errors=[f"LLM недоступен: {e}"])
+
+    # Gemini sometimes wraps JSON in ```json fences despite instructions.
+    if raw_text.startswith("```"):
+        raw_text = raw_text.strip("`").removeprefix("json").strip()
 
     try:
         fields = json.loads(raw_text)

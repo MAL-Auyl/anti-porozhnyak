@@ -9,7 +9,9 @@ from app.services.llm_parser import (
     CARGO_CATEGORIES,
     DEMO_PHRASE,
     ParsedLoadDraft,
+    ParseResult,
     _validate_locations,
+    parse_load_request,
     parse_load_request_cached,
 )
 from pydantic import ValidationError
@@ -100,6 +102,54 @@ def test_validate_locations_rejects_unknown_name():
     _validate_locations(fields, errors)
     assert len(errors) == 1
     assert "origin" in errors[0]
+
+
+def test_prefers_gemini_when_both_keys_present(monkeypatch):
+    """Gemini's free tier makes it the safer default for a live demo — a
+    paid Anthropic key might not be funded/available on defense day."""
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-gemini-key")
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-anthropic-key")
+
+    calls = []
+    monkeypatch.setattr("app.services.llm_parser._call_gemini", lambda text, system: calls.append("gemini") or '{"origin":"Актау"}')
+    monkeypatch.setattr("app.services.llm_parser._call_anthropic", lambda text, system: calls.append("anthropic") or '{"origin":"Актау"}')
+
+    parse_load_request("что угодно")
+    assert calls == ["gemini"]
+
+
+def test_falls_back_to_anthropic_when_no_gemini_key(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-anthropic-key")
+
+    calls = []
+    monkeypatch.setattr("app.services.llm_parser._call_anthropic", lambda text, system: calls.append("anthropic") or '{"origin":"Актау"}')
+
+    parse_load_request("что угодно")
+    assert calls == ["anthropic"]
+
+
+def test_no_keys_returns_graceful_error(monkeypatch):
+    monkeypatch.delenv("GEMINI_API_KEY", raising=False)
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    result = parse_load_request("что угодно")
+    assert result.ok is False
+    assert "GEMINI_API_KEY" in result.errors[0]
+
+
+def test_gemini_markdown_fence_stripped(monkeypatch):
+    """Gemini sometimes wraps JSON in ```json fences despite instructions
+    not to — must not break parsing."""
+    monkeypatch.setenv("GEMINI_API_KEY", "fake-gemini-key")
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+
+    fenced = '```json\n{"origin":"Актау","destination":"Шетпе","cargo":"кирпич","cargo_category":"стройматериалы","weight_tons":5,"vehicle_type":"тент","date":"2026-08-20"}\n```'
+    monkeypatch.setattr("app.services.llm_parser._call_gemini", lambda text, system: fenced)
+
+    result = parse_load_request("нужно завтра из Актау в Шетпе 5 тонн кирпича")
+    assert result.ok is True
+    assert result.draft.origin == "aktau"
 
 
 def test_known_cargo_categories_cover_return_flow_use_case():
